@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
 
 function Login() {
@@ -18,6 +18,8 @@ function Login() {
       });
 
       console.log("Response:", response.data);
+      localStorage.setItem("token", response.data.token);
+      navigate("/home");
     } catch (error) {
       console.log("Error:", error.response?.data || error.message);
     }
