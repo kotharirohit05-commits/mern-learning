@@ -32,6 +32,18 @@ const handleToggle = async (todo) => {
     console.log(error.response?.data || error.message);
   }
   };
+const handleEdit = async (id, editedTitle, completed) => {
+  try {
+    await api.put(`/todos/${id}`, {
+      title: editedTitle,
+      completed: completed,
+    });
+
+    fetchTodos();
+  } catch (error) {
+    console.log(error.response?.data || error.message);
+  }
+};
 
   // Add Todo
   const handleAddTodo = async () => {
@@ -112,6 +124,7 @@ const handleDelete = async (id) => {
               todo={todo}
               onDelete={handleDelete}
               onToggle={handleToggle}
+              onEdit={handleEdit}
             />
           ))
         )}
