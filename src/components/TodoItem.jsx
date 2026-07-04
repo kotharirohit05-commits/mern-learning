@@ -1,4 +1,4 @@
-function TodoItem({ todo, onDelete }) {
+function TodoItem({ todo, onDelete, onToggle}) {
   return (
     <div className="flex items-center justify-between bg-white border rounded-xl p-4 mb-4 shadow-sm hover:shadow-md transition">
 
@@ -8,15 +8,22 @@ function TodoItem({ todo, onDelete }) {
           {todo.title}
         </h3>
 
-        <p
-          className={`text-sm mt-1 ${
-            todo.completed
-              ? "text-green-600"
-              : "text-orange-500"
-          }`}
-        >
-          {todo.completed ? "Completed ✅" : "Pending ⏳"}
-        </p>
+        <div className="flex items-center gap-2 mt-2">
+  <input
+    type="checkbox"
+    checked={todo.completed}
+    onChange={() => onToggle(todo)}
+    className="w-5 h-5"
+  />
+
+  <span
+    className={`text-sm ${
+      todo.completed ? "text-green-600" : "text-orange-500"
+    }`}
+  >
+    {todo.completed ? "Completed" : "Pending"}
+  </span>
+</div>
       </div>
 
       {/* Right Side */}

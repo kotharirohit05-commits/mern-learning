@@ -20,6 +20,19 @@ function Home() {
     }
   };
 
+const handleToggle = async (todo) => {
+  try {
+    await api.put(`/todos/${todo.id}`, {
+      title: todo.title,
+      completed: !todo.completed,
+    });
+
+    fetchTodos();
+  } catch (error) {
+    console.log(error.response?.data || error.message);
+  }
+  };
+
   // Add Todo
   const handleAddTodo = async () => {
     if (title.trim() === "") return;
@@ -38,26 +51,19 @@ function Home() {
   };
 
   // Delete Todo
-  const handleDelete = async (id) => {
-    try {
-      await api.delete(`/todos/${id}`);
+const handleDelete = async (id) => {
+  console.log("Delete clicked:", id);
 
-      fetchTodos();
-    } catch (error) {
-      console.log(error.response?.data || error.message);
-    }
-  };
+  try {
+    await api.delete(`/todos/${id}`);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      navigate("/login");
-      return;
-    }
+    console.log("Delete successful");
 
     fetchTodos();
-  }, []);
+  } catch (error) {
+    console.log(error.response?.data || error.message);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -105,6 +111,7 @@ function Home() {
               key={todo.id}
               todo={todo}
               onDelete={handleDelete}
+              onToggle={handleToggle}
             />
           ))
         )}
