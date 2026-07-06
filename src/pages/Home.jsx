@@ -1,22 +1,30 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
+import { toast } from "react-toastify";
 import TodoItem from "../components/TodoItem";
 
 function Home() {
   const navigate = useNavigate();
 
   const [todos, setTodos] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [title, setTitle] = useState("");
 
   // Fetch all todos
   const fetchTodos = async () => {
     try {
+      setLoading(true);
       const response = await api.get("/todos");
-      console.log(response.data);
+
       setTodos(response.data);
     } catch (error) {
-      console.log(error.response?.data || error.message);
+      toast.error(error.response?.data?.message || error.message);
+    }
+    finally {
+
+        setLoading(false);
+
     }
   };
 
@@ -29,7 +37,7 @@ const handleToggle = async (todo) => {
 
     fetchTodos();
   } catch (error) {
-    console.log(error.response?.data || error.message);
+    toast.error(error.response?.data?.message || error.message);
   }
   };
 const handleEdit = async (id, editedTitle, completed) => {
@@ -38,10 +46,11 @@ const handleEdit = async (id, editedTitle, completed) => {
       title: editedTitle,
       completed: completed,
     });
+    toast.success("Todo updated successfully!");
 
     fetchTodos();
   } catch (error) {
-    console.log(error.response?.data || error.message);
+    toast.error(error.response?.data?.message || error.message);
   }
 };
 
@@ -54,41 +63,82 @@ const handleEdit = async (id, editedTitle, completed) => {
         title,
       });
 
+      toast.success("Todo added successfully!");
+
       setTitle("");
 
       fetchTodos();
     } catch (error) {
-      console.log(error.response?.data || error.message);
+      toast.error(error.response?.data?.message || error.message);
     }
   };
 
   // Delete Todo
 const handleDelete = async (id) => {
-  console.log("Delete clicked:", id);
+
 
   try {
     await api.delete(`/todos/${id}`);
 
-    console.log("Delete successful");
+
+    toast.success("Todo deleted successfully!");
 
     fetchTodos();
   } catch (error) {
-    console.log(error.response?.data || error.message);
+    toast.error(error.response?.data?.message || error.message);
   }
 };
+const handleLogout = () => {
+  localStorage.removeItem("token");
+  navigate("/login");
+};
+useEffect(() => {
+  const token = localStorage.getItem("token");
 
+  if (!token) {
+    navigate("/login");
+    return;
+  }
+
+  fetchTodos();
+}, []);
+
+if (loading) {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
+      <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+
+      <p className="mt-4 text-gray-600 font-medium">
+        Loading your todos...
+      </p>
+    </div>
+  );
+}
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
 
-      <div className="w-full max-w-2xl bg-white rounded-xl shadow-lg p-8">
+      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-8">
 
-        <h1 className="text-4xl font-bold text-center mb-2">
-          📝 Todo App
-        </h1>
+        <div className="flex justify-between items-center mb-6">
+  <div>
+    <h1 className="text-5xl font-bold">
+      📝 Todo App
+    </h1>
 
-        <p className="text-center text-gray-500 mb-8">
-          Stay organized and productive
-        </p>
+    <p className="text-gray-500 mt-2">
+      Stay organized and productive
+    </p>
+  </div>
+
+  <button
+    onClick={handleLogout}
+    className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-lg"
+  >
+    Logout
+  </button>
+</div>
+
+
 
         {/* Input Section */}
 
@@ -99,12 +149,24 @@ const handleDelete = async (id) => {
             placeholder="Enter a new task..."
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleAddTodo();
+              }
+              }}
             className="flex-1 border rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500"
           />
 
           <button
             onClick={handleAddTodo}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-lg transition"
+            disabled={title.trim() === ""}
+            className="bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all text-white px-6 rounded-lg"
+            className={`px-6 rounded-lg text-white transition-all
+  ${
+    title.trim() === ""
+      ? "bg-gray-400 cursor-not-allowed"
+      : "bg-blue-600 hover:bg-blue-700 active:scale-95"
+  }`}
           >
             Add
           </button>
@@ -113,21 +175,33 @@ const handleDelete = async (id) => {
 
         {/* Todo List */}
 
-        {todos.length === 0 ? (
-          <p className="text-center text-gray-500">
-            No Todos Yet 🚀
-          </p>
-        ) : (
-          todos.map((todo) => (
-            <TodoItem
-              key={todo.id}
-              todo={todo}
-              onDelete={handleDelete}
-              onToggle={handleToggle}
-              onEdit={handleEdit}
-            />
-          ))
-        )}
+{todos.length === 0 ? (
+  <div className="flex flex-col items-center justify-center py-16">
+
+    <div className="text-7xl">
+      📝
+    </div>
+
+    <h2 className="text-2xl font-bold mt-4">
+      No Todos Yet
+    </h2>
+
+    <p className="text-gray-500 mt-2">
+      Add your first task to get started.
+    </p>
+
+  </div>
+) : (
+  todos.map((todo) => (
+    <TodoItem
+      key={todo.id}
+      todo={todo}
+      onDelete={handleDelete}
+      onToggle={handleToggle}
+      onEdit={handleEdit}
+    />
+  ))
+)}
 
       </div>
 
